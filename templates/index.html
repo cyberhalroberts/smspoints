@@ -1,84 +1,66 @@
 <html>
     <head>
         <title>POINTS!!!!</title>
-        <style>
-            table, th, td {
-              border: 1px solid black;
-              border-collapse: collapse;
-            }
-        </style>
+        <link rel="stylesheet" href="/static/points.css" />
     </head>
     <body>
         <div align="center">
-            <h1>POINTS!!!</h1>
-            <table border=1>
-                <tr>
-                    <th>blue</th>
-                    <th>white</th>
-                </tr>
-                <tr>
-                    <td>{{ blue_points }}</td>
-                    <td>{{ white_points }}</td>
-                </tr>
-            </table>
-
-            <h2>Add a Point</h2>
-            <form action="/point" method="POST">
-                {{ user.name }}
-                <table border=1>
+            <div class="background-box">
+                <h1>POINTS!!!</h1>
+                <table class="team-box">
                     <tr>
-                        <td>Color</td>
-                        <td>
-                            {% if user.color %}
-                                {{ user.color }}
-                            {% else %}
-                                <select name="color">
-                                    <option value="blue">blue</option>
-                                    <option value="white">white</option>
+                        <td class="team-scores">BLUE</th>
+                        <td class="team-scores">WHITE</th>
+                    </tr>
+                    <tr>
+                        <td class="team-scores">{{ blue_points }}</td>
+                        <td class="team-scores">{{ white_points }}</td>
+                    </tr>
+                </table>
+
+                <form action="/point" method="POST">
+                    <table class="points-box">
+                        {% if not user.color %}
+                            <tr >
+                                <td class="points-form">
+                                    <select name="color">
+                                        <option value="blue">blue</option>
+                                        <option value="white">white</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        {% endif %}
+                        <tr>
+                            <td class="points-form"><input class="points-input" type="date" name="event_date" value="{{ today }}" /></td>
+                        </tr>
+                        <tr>
+                            <td class="points-form">
+                                <select name="event_type" class="points-input">
+                                    {%- for type in event_types %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                    {% endfor %}
                                 </select>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Event Date</td>
-                        <td><input type="date" name="event_date" value="{{ today }}" /></td>
-                    </tr>
-                    <tr>
-                        <td>Event Type</td>
-                        <td>
-                            <select name="event_type">
-                                {%- for type in event_types %}
-                                <option value="{{ type }}">{{ type }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Event Description</td>
-                        <td><input name="event_description" placeholder="vs. hutchison"/></td>
-                    </tr>
-                    <tr>
-                        <td />
-                        <td><input type="submit" value="point!" /></td>
-                    </tr>
-                <table>
-            </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="points-form"><input name="event_description" placeholder="vs. hutchison" class="points-input"/></td>
+                        </tr>
+                    </table>
+                    <input class="points-button" type="submit" size="16" value="point!" class="points-input"></td>
+                </form>
 
-            <h2>Top 10 Turkeys</h2>
-            <table border="1">
-                <tr>
-                    <th>student</th>
-                    <th>color</th>
-                    <th>points</th>
-                </tr>
-                {%- for user in top_10_users %}
-                <tr>
-                    <td>{{ user.name }}</td>
-                    <td>{{ user.color }}</td>
-                    <td>{{ user.points }}</td>
-                </tr>
-                {% endfor %}
-            </table>
+                <h2>Top 10 Turkeys!!!</h2>
+                <table class="top10-box" border="1">
+                    {%- for user in top_10_users %}
+                    <tr class="{{ loop.cycle('top10-row-gray', 'top10-row-white') }}">
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.color }}</td>
+                            <td>{{ user.points }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <p>&nbsp;</p>
+            </div>
         </div>
     </body>
 </html>

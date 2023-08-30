@@ -33,8 +33,8 @@ class User(UserMixin):
         return User(users_id=user[0], name=user[1], email=user[2], color=user[3])
 
     @staticmethod
-    def create(name, email, color):
+    def create(name, email):
         db = get_db()
-        db.execute("INSERT INTO users (name, email, color) VALUES (?, ?, ?)", 
-                (name, email, color))
+        db.execute("INSERT INTO users (name, email) VALUES (?, ?)", 
+                (name, email))
         db.commit()

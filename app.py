@@ -114,7 +114,7 @@ def get_top_10_users(db):
             limit 10
         """, [])
 
-@app.route("/")
+@app.route("/", methods = ['GET'])
 def index():
     if not current_user.is_authenticated:
         return redirect(get_google_login_url())
@@ -127,7 +127,7 @@ def index():
 
     today = datetime.datetime.now().strftime("%Y-%m-%d")
 
-    point = request.form.get('point', None)
+    point = request.args.get('point', None)
 
     return render_template(
         'index.html',
@@ -140,7 +140,16 @@ def index():
         point=point,
     )
 
-@app.route("/point", methods=['POST', 'GET'])
+@app.route("/message", methods = ['GET'])
+def message():
+    m = request.args.get('m', '')
+
+    return render_template(
+        'message.html',
+        m=m
+    )
+
+@app.route("/point", methods=['POST'])
 def point():
     if not current_user.is_authenticated:
         return redirect(get_google_login_url())
@@ -209,7 +218,7 @@ def callback():
 
     if not (users_email.endswith('@stmarysschool.org') or
         users_email.endswith('@stmarysmemphis.net')):
-        raise ValueError("Google account must be an SMS domain")
+        return redirect(url_for("message", m="Google account must belong to SMS"))
 
     db = get_db()
 
