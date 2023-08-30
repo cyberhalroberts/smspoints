@@ -7,6 +7,11 @@
         <div align="center">
             <div class="background-box">
                 <h1>POINTS!!!</h1>
+                {%- if point == "white" %}
+                    <img src="/static/mighty_white.jpeg" />
+                {% elif point == "blue" %}
+                    <img src="/static/mighty_blue.jpeg" />
+                {% endif %}
                 <table class="team-box">
                     <tr>
                         <td class="team-scores">BLUE</th>

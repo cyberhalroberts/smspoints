@@ -168,6 +168,8 @@ def point():
 
         color = request.form['color']
         db.execute("update users set color = ? where users_id = ?", [color, current_user.id])
+        
+        current_user.color = color
 
     db.execute("""
         insert into points
@@ -177,8 +179,7 @@ def point():
         [current_user.users_id, event_date, event_type, event_description])
     db.commit()
 
-    return redirect("/?point=1")
-
+    return redirect(url_for("index", point=current_user.color))
 
 @app.route("/login")
 def login():
