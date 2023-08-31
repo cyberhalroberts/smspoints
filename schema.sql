@@ -1,7 +1,7 @@
 create table users (
     users_id integer primary key,
     name text not null,
-    color text null,
+    color text check (color in ('blue', 'white')) null,
     email text unique not null,
     admin boolean default false not null
 );
@@ -21,5 +21,5 @@ create table points (
 
 create index if not exists points_user on points(users_id);
 create index if not exists points_created on points(created_time);
-create index if not exists points_event_day on points(event_day);
+create index if not exists points_event_day on points(event_date);
 create index if not exists points_event_type on points(event_type);

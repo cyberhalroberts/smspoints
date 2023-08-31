@@ -4,11 +4,18 @@ import sqlite3
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
+
+def get_raw_db():
+    """get db directly, without looking in the flask g first"""
+    db = sqlite3.connect("points.db", detect_types=sqlite3.PARSE_DECLTYPES)
+    db.row_factory = sqlite3.Row
+
+    return db
+
  
 def get_db():
     if "db" not in g:
-        g.db = sqlite3.connect("points.db", detect_types=sqlite3.PARSE_DECLTYPES)
-        g.db.row_factory = sqlite3.Row
+        g.db = get_raw_db()
 
     return g.db
 
