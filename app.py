@@ -1,12 +1,14 @@
 # Python standard libraries
+import csv
 import datetime
+import io
 import json
 import os
 import sqlite3
 import sys
 
 # Third-party libraries
-from flask import Flask, redirect, request, url_for, render_template
+from flask import Flask, redirect, request, url_for, render_template, make_response
 from flask_login import (
     LoginManager,
     current_user,
@@ -89,9 +91,7 @@ def require_vars(vars):
 
 def get_point_totals(db):
     point_totals = query_db(db, """
-        select p.color, sum(num_points) count 
-            from points p join users u on (p.users_id = u.users_id)
-            group by p.color
+        select p.color, sum(num_points) count from points p group by p.color
         """, [])
 
     white_points = 0
@@ -110,12 +110,12 @@ def get_point_totals(db):
 
 def get_top_10_users(db):
     return query_db(db, """
-        select u.name, u.color, u.users_id, count(*) points
+        select u.name, p.color, u.users_id, sum(p.num_points) points
             from 
                 users u join
                 points p on (u.users_id = p.users_id)
             group by u.users_id
-            order by count(*) desc
+            order by sum(p.num_points) desc
             limit 10
         """, [])
 
@@ -199,28 +199,78 @@ def admin_points():
     if not current_user.admin:
         return redirect(url_for("message", m="admin account required."))
 
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
     if not request.form.get("submit", False):
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
-        return render_template(
-            "admin_points.html", 
-            today=today,
-            event_types=EVENT_TYPES)
+        return render_template("admin_points.html", today=today, event_types=EVENT_TYPES)
 
-    user = User.get_by_email(request.form.get('email', None))
-    users_id = user.users_id if user else None
+    db = get_db()
+
+    users_id = None
+    if email := request.form.get('email', ''):
+        if user := User.get_by_email(request.form.get('email', None)):
+            users_id = user.users_id
+        else:
+            message = "Email not found."
+            return render_template("admin_points.html", 
+                today=today, event_types=EVENT_TYPES, message=message)
+
+    current_id = current_user.users_id
 
     require_vars(['num_points', 'color', 'event_date', 'event_type', 'event_description'])
 
+    num_points = request.form['num_points']
+    color = request.form['color']
+    event_date = request.form['event_date']
+    event_type = request.form['event_type']
+    event_description = request.form['event_description']
 
     db.execute("""
         insert into points
-            (users_id, color, event_date, event_type, event_description, added_by)
-            values (?, ?, ?, ?, ?, ?);
+            (users_id, num_points, color, event_date, event_type, event_description, added_by)
+            values (?, ?, ?, ?, ?, ?, ?);
         """,
-        [users_id, color, event_date, event_type, event_description, current_user.users_id])
+        [users_id, num_points, color, event_date, event_type, event_description, current_id])
     db.commit()
 
-    return redirect(url_for("/admin_points", message="Points added!"))
+    return redirect(url_for("index", message="Points added!"))
+
+@app.route("/download_points")
+def download_points():
+    if not current_user.is_authenticated:
+        return redirect(get_google_login_url())
+
+    if not current_user.admin:
+        return redirect(url_for("message", m="admin account required."))
+
+    db = get_db()
+
+    points = db.execute("""
+        select u.users_id, u.email, u.name, u.color user_color,
+                p.color point_color, p.num_points, p.event_date, p.event_type, p.event_description,
+                a.email added_by_email, p.created_time
+            from points p
+                join users a on (p.added_by = a.users_id)
+                left join users u on (p.users_id = u.users_id)
+            order by
+                p.created_time asc
+        """)
+
+    fieldnames = ("users_id email name user_color point_color num_points event_date " + 
+        "event_type event_description added_by_email created_time").split()
+
+    with io.StringIO() as csvfile:
+
+        writer = csv.writer(csvfile)
+
+        writer.writerow(fieldnames)
+        for point in points:
+            writer.writerow(point)
+
+        output = make_response(csvfile.getvalue())
+        output.headers["Content-Disposition"] = "attachment; filename=points.csv"
+        output.headers["Content-type"] = "text/csv"
+
+        return output
 
 @app.route("/login")
 def login():

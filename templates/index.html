@@ -6,10 +6,10 @@
     <body>
         <div align="center">
             <div class="background-box">
+                <h1>POINTS!!!</h1>
                 {%- if message %}
                     <p>{{message}}</p>
                 {% endif %}
-                <h1>POINTS!!!</h1>
                 {%- if point == "white" %}
                     <img src="/static/mighty_white.jpeg" />
                 {% elif point == "blue" %}
@@ -57,7 +57,7 @@
                     <input class="points-button" type="submit" size="16" value="point!" class="points-input"></td>
                 </form>
 
-                <h2>Top 10 Turkeys!!!</h2>
+                <h2>Top 10 Turkeys</h2>
                 <table class="top10-box" border="1">
                     {%- for user in top_10_users %}
                     <tr class="{{ loop.cycle('top10-row-gray', 'top10-row-white') }}">
@@ -67,10 +67,15 @@
                         </tr>
                     {% endfor %}
                 </table>
-                <p>&nbsp;</p>
-                {%- if current_user.admin %}
-                    <p><a href="/admin_points">administer points</a></p>
-                {% endif %}
+                <div class="footer">
+                    <p>&nbsp;</p>
+                    {%- if current_user.admin %}
+                        <p>
+                            <a href="/admin_points">administer points</a> |
+                            <a href="/download_points">download points</a>
+                        </p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </body>

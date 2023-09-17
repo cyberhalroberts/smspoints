@@ -6,7 +6,11 @@
     <body>
         <div align="center">
             <div class="background-box">
-                <form action="/point" method="POST">
+                <h1>POINTS!!!</h1>
+                {%- if message %}
+                    <p>{{message}}</p>
+                {% endif %}
+                <form action="/admin_points" method="POST">
                     <table class="points-box">
                         <tr>
                             <td class="points-form">
@@ -42,7 +46,7 @@
                             <td class="points-form"><input name="event_description" placeholder="vs. hutchison" class="points-input" required/></td>
                         </tr>
                     </table>
-                    <input class="points-button" type="submit" size="16" value="point!" class="points-input"></td>
+                    <input class="points-button" name="submit" type="submit" size="16" value="point!" class="points-input"></td>
                 </form>
 
                 <p>&nbsp;</p>
