@@ -22,20 +22,21 @@ from db import init_db_command, get_db, query_db
 from user import User
 
 EVENT_TYPES = [
-        'soccer',
+        'academic',
+        'basketball',
+        'bowling',
         'cross country',
         'golf',
-        'volleyball',
-        'basketball',
-        'swimming',
-        'bowling',
         'lacrosse',
+        'music',
+        'service',
+        'soccer',
+        'swimming',
         'tennis',
+        'theater',
         'track and field',
         'trap',
-        'theater',
-        'music',
-        'academic',
+        'volleyball',
         'other'
 ];
 
@@ -78,15 +79,19 @@ def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
 
 def require_vars(vars):
+    missing_vars = []
     for var in vars:
-        if not var in request.form:
-            raise ValueError("missing var: " + var)
+        if var not in request.form or request.form[var] == '':
+            missing_vars.append(var)
+
+    if len(missing_vars) > 0:
+        raise ValueError(f"Missing required data: {', '.join(missing_vars)}")
 
 def get_point_totals(db):
     point_totals = query_db(db, """
-        select color, count(*) count 
+        select p.color, sum(num_points) count 
             from points p join users u on (p.users_id = u.users_id)
-            group by color
+            group by p.color
         """, [])
 
     white_points = 0
@@ -129,6 +134,8 @@ def index():
 
     point = request.args.get('point', None)
 
+    message = request.args.get('message', None)
+
     return render_template(
         'index.html',
         blue_points=blue_points,
@@ -138,6 +145,7 @@ def index():
         top_10_users=top_10_users,
         today=today,
         point=point,
+        message=message,
     )
 
 @app.route("/message", methods = ['GET'])
@@ -171,15 +179,48 @@ def point():
         
         current_user.color = color
 
+    u = current_user
+
     db.execute("""
         insert into points
-            (users_id, event_date, event_type, event_description)
-            values (?, ?, ?, ?);
+            (users_id, color, event_date, event_type, event_description, added_by)
+            values (?, ?, ?, ?, ?, ?);
         """,
-        [current_user.users_id, event_date, event_type, event_description])
+        [u.users_id, u.color, event_date, event_type, event_description, u.users_id])
     db.commit()
 
     return redirect(url_for("index", point=current_user.color))
+
+@app.route("/admin_points", methods=['GET', 'POST'])
+def admin_points():
+    if not current_user.is_authenticated:
+        return redirect(get_google_login_url())
+
+    if not current_user.admin:
+        return redirect(url_for("message", m="admin account required."))
+
+    if not request.form.get("submit", False):
+        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        return render_template(
+            "admin_points.html", 
+            today=today,
+            event_types=EVENT_TYPES)
+
+    user = User.get_by_email(request.form.get('email', None))
+    users_id = user.users_id if user else None
+
+    require_vars(['num_points', 'color', 'event_date', 'event_type', 'event_description'])
+
+
+    db.execute("""
+        insert into points
+            (users_id, color, event_date, event_type, event_description, added_by)
+            values (?, ?, ?, ?, ?, ?);
+        """,
+        [users_id, color, event_date, event_type, event_description, current_user.users_id])
+    db.commit()
+
+    return redirect(url_for("/admin_points", message="Points added!"))
 
 @app.route("/login")
 def login():

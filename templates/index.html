@@ -6,6 +6,9 @@
     <body>
         <div align="center">
             <div class="background-box">
+                {%- if message %}
+                    <p>{{message}}</p>
+                {% endif %}
                 <h1>POINTS!!!</h1>
                 {%- if point == "white" %}
                     <img src="/static/mighty_white.jpeg" />
@@ -48,7 +51,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="points-form"><input name="event_description" placeholder="vs. hutchison" class="points-input"/></td>
+                            <td class="points-form"><input name="event_description" placeholder="vs. hutchison" class="points-input" required/></td>
                         </tr>
                     </table>
                     <input class="points-button" type="submit" size="16" value="point!" class="points-input"></td>
@@ -65,6 +68,9 @@
                     {% endfor %}
                 </table>
                 <p>&nbsp;</p>
+                {%- if current_user.admin %}
+                    <p><a href="/admin_points">administer points</a></p>
+                {% endif %}
             </div>
         </div>
     </body>

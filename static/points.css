@@ -10,7 +10,13 @@ h1 {
   background-color: #6DBEDB;
   align: center;
   color: #ffffff;
+
 }
+
+a * {
+    color: white;
+}
+
 .points-form {
     width: 60%;
 }

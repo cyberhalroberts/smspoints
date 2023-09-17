@@ -10,13 +10,17 @@ create index if not exists users_email on users(email);
 
 create table points (
     points_id int primary key,
-    users_id int not null,
+    num_points int not null default 1,
+    users_id int null,
     created_time text default current_timestamp not null,
     event_date text not null,
     event_type text not null,
     event_description text null,
+    added_by int not null,
+    color text check (color in ('blue', 'white')) null,
 
-    foreign key (users_id) references users(id)
+    foreign key (users_id) references users(id),
+    foreign key (added_by) references users(id)
 );
 
 create index if not exists points_user on points(users_id);
