@@ -1,0 +1,52 @@
+<html>
+    <head>
+        <title>POINTS!!!!</title>
+        <link rel="stylesheet" href="/static/points.css" />
+    </head>
+    <body>
+        <div align="center">
+            <div class="background-box">
+                <form action="/point" method="POST">
+                    <table class="points-box">
+                        <tr>
+                            <td class="points-form">
+                                <input type="text" name="email" placeholder="email of point getter (optional)" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="points-form">
+                                <input type="text" name="num_points" value=1 size=4 style="text-align:center;" required/>
+                            </td>
+                        </tr>
+                        <tr >
+                            <td class="points-form">
+                                <select name="color">
+                                    <option value="blue">blue</option>
+                                    <option value="white">white</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="points-form"><input class="points-input" type="date" name="event_date" value="{{ today }}" required/></td>
+                        </tr>
+                        <tr>
+                            <td class="points-form">
+                                <select name="event_type" class="points-input">
+                                    {%- for type in event_types %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="points-form"><input name="event_description" placeholder="vs. hutchison" class="points-input" required/></td>
+                        </tr>
+                    </table>
+                    <input class="points-button" type="submit" size="16" value="point!" class="points-input"></td>
+                </form>
+
+                <p>&nbsp;</p>
+            </div>
+        </div>
+    </body>
+</html>
