@@ -114,7 +114,7 @@ def get_top_10_users(db):
             from 
                 users u join
                 points p on (u.users_id = p.users_id)
-            group by u.users_id
+            group by u.users_id, p.color
             order by sum(p.num_points) desc
             limit 10
         """, [])
