@@ -30,6 +30,7 @@ EVENT_TYPES = [
         'cross country',
         'golf',
         'lacrosse',
+        'mock trial',
         'music',
         'service',
         'soccer',

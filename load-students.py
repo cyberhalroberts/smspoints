@@ -9,6 +9,9 @@ import sys
 from db import get_raw_db, query_db
 from user import User
 
+# number of points to give to each teacher
+STARTING_TEACHER_POINTS = 50
+
 def insert_user(db, user):
     for field in ['email', 'name']:
         if not field in user:
@@ -18,19 +21,34 @@ def insert_user(db, user):
         print(f"skipping user {user['email']} for missing color", file=sys.stderr)
         return
 
+    user['color'] = user['color'].lower()
+    user['email'] = user['email'].lower()
+    user['teacher'] = user.get('teacher', 0);
+
     existing_users = query_db(db, 
         "select * from users where lower(email) = lower(?)", 
         [user['email']])
 
     if not existing_users:
         db.execute(
-            "insert into users (name, email, color) values (?, ?, ?)",
-            [user['name'], user['email'], user['color']])
+            "insert into users (name, email, color, teacher) values (?, ?, ?, ?)",
+            [user['name'], user['email'], user['color'], user['teacher']])
+        existing_users = query_db(db, 
+            "select * from users where lower(email) = lower(?)", 
+            [user['email']])
     else:
-        db.execute(
-            "update users set name = ?, color = ? where lower(email) = lower(?)",
-            [user['name'], user['color'], user['email']])
+        print(f"skipping user {user['email']} already exists", file=sys.stderr)
 
+
+    if user['teacher']:
+        users_id = existing_users[0]['users_id']
+        pool = query_db(db,
+            "select * from point_pools where users_id = ?",
+            [users_id])
+        if not pool:
+            db.execute(
+                "insert into point_pools(users_id, points) values (?, ?)",
+                [users_id, STARTING_TEACHER_POINTS]);
 
 def main():
     db = get_raw_db()

@@ -3,7 +3,8 @@ create table users (
     name text not null,
     color text check (color in ('blue', 'white')) null,
     email text unique not null,
-    admin boolean default false not null
+    admin boolean default false not null,
+    teacher boolean default false not null
 );
 
 create index if not exists users_email on users(email);
@@ -23,7 +24,16 @@ create table points (
     foreign key (added_by) references users(id)
 );
 
+create table point_pools (
+    point_pools_id integer primary key,
+    users_id int not null,
+    points int not null,
+
+    foreign key (users_id) references users(id)
+);
+
 create index if not exists points_user on points(users_id);
 create index if not exists points_created on points(created_time);
 create index if not exists points_event_day on points(event_date);
 create index if not exists points_event_type on points(event_type);
+create index if not exists point_pools_user on point_pools(users_id);
