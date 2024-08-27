@@ -82,6 +82,7 @@ def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
 
 def require_vars(vars):
+    """raise a ValueError if there is no value for one of the cgi variables named in vars"""
     missing_vars = []
     for var in vars:
         if var not in request.form or request.form[var] == '':
@@ -91,6 +92,7 @@ def require_vars(vars):
         raise ValueError(f"Missing required data: {', '.join(missing_vars)}")
 
 def get_point_totals(db):
+    """ return a list consisting of the white point total and the blue point total """
     point_totals = query_db(db, """
         select p.color, sum(num_points) count from points p group by p.color
         """, [])
@@ -110,6 +112,7 @@ def get_point_totals(db):
     return (white_points, blue_points)
 
 def get_top_10_users(db):
+    """return the top 10 users by number of points"""
     return query_db(db, """
         select u.name, p.color, u.users_id, sum(p.num_points) points
             from 
@@ -120,8 +123,20 @@ def get_top_10_users(db):
             limit 10
         """, [])
 
+def get_latest_points(db):
+    """return a list of the latest points by event_date and then created_time"""
+    return query_db(db, """
+        select u.name, p.color, p.event_date, p.event_type
+            from
+                users u join
+                points p on (u.users_id = p.users_id)
+            order by p.event_date desc, p.created_time desc
+            limit 20
+        """, [])
+
 @app.route("/", methods = ['GET'])
 def index():
+    """main page"""
     if not current_user.is_authenticated:
         return redirect(get_google_login_url())
 
@@ -129,7 +144,7 @@ def index():
 
     (white_points, blue_points) = get_point_totals(db)
 
-    top_10_users = get_top_10_users(db)
+    latest_points = get_latest_points(db)
 
     today = datetime.datetime.now().strftime("%Y-%m-%d")
 
@@ -143,7 +158,7 @@ def index():
         white_points=white_points,
         user=current_user,
         event_types=EVENT_TYPES,
-        top_10_users=top_10_users,
+        latest_points=latest_points,
         today=today,
         point=point,
         message=message,
@@ -151,6 +166,7 @@ def index():
 
 @app.route("/message", methods = ['GET'])
 def message():
+    """simple message page"""
     m = request.args.get('m', '')
 
     return render_template(
@@ -160,6 +176,7 @@ def message():
 
 @app.route("/point", methods=['POST'])
 def point():
+    """page to add a point"""
     if not current_user.is_authenticated:
         return redirect(get_google_login_url())
 
@@ -194,6 +211,7 @@ def point():
 
 @app.route("/admin_points", methods=['GET', 'POST'])
 def admin_points():
+    """display or process admin points page"""
     if not current_user.is_authenticated:
         return redirect(get_google_login_url())
 
@@ -237,6 +255,7 @@ def admin_points():
 
 @app.route("/download_points")
 def download_points():
+    """generate and send a csv of the current points db"""
     if not current_user.is_authenticated:
         return redirect(get_google_login_url())
 

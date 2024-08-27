@@ -51,19 +51,34 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="points-form">
+                                <select name="num_points" class="points-input">
+                                    <option value="1">1 point</option>
+                                    <option value="2">2 points</option>
+                                    <option value="3">3 points</option>
+                                    <option value="4">4 points</option>
+                                    <option value="5">5 points</option>
+                                    <option value="6">6 points</option>
+                                    <option value="7">7 points</option>
+                                    <option value="8">8 points</option>
+                                    <option value="9">9 points</option>
+                                </select>
+                        </tr>
+                        <tr>
                             <td class="points-form"><input name="event_description" placeholder="vs. hutchison" class="points-input" required/></td>
                         </tr>
                     </table>
-                    <input class="points-button" type="submit" size="16" value="point!" class="points-input"></td>
+                    <input class="points-button" type="submit" size="16" value="points!" class="points-input"></td>
                 </form>
 
-                <h2>Top 10 Turkeys</h2>
+                <h2>Latest Points</h2>
                 <table class="top10-box" border="1">
-                    {%- for user in top_10_users %}
-                    <tr class="{{ loop.cycle('top10-row-gray', 'top10-row-white') }}">
-                            <td>{{ user.name }}</td>
-                            <td>{{ user.color }}</td>
-                            <td>{{ user.points }}</td>
+                    {%- for point in latest_points %}
+                        <tr class="{{ loop.cycle('top10-row-gray', 'top10-row-white') }}">
+                            <td>{{ point.name }}</td>
+                            <td>{{ point.color }}</td>
+                            <td>{{ point.event_date }}</td>
+                            <td>{{ point.event_type }}</td>
                         </tr>
                     {% endfor %}
                 </table>
