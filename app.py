@@ -180,11 +180,12 @@ def point():
     if not current_user.is_authenticated:
         return redirect(get_google_login_url())
 
-    require_vars(['event_date', 'event_type', 'event_description'])
+    require_vars(['event_date', 'event_type', 'event_description', 'num_points'])
 
     event_date = request.form['event_date']
     event_type = request.form['event_type']
     event_description = request.form['event_description']
+    num_points = request.form['num_points']
 
     db = get_db()
 
@@ -201,10 +202,10 @@ def point():
 
     db.execute("""
         insert into points
-            (users_id, color, event_date, event_type, event_description, added_by)
-            values (?, ?, ?, ?, ?, ?);
+            (users_id, color, event_date, event_type, event_description, added_by, num_points)
+            values (?, ?, ?, ?, ?, ?, ?);
         """,
-        [u.users_id, u.color, event_date, event_type, event_description, u.users_id])
+        [u.users_id, u.color, event_date, event_type, event_description, u.users_id, num_points])
     db.commit()
 
     return redirect(url_for("index", point=current_user.color))
