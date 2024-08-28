@@ -17,7 +17,7 @@ def insert_user(db, user):
         if not field in user:
             raise ValueError(f"user {user} missing field {field}")
 
-    if user.get('color', '') not in ['blue', 'white']:
+    if user.get('color', '').lower() not in ['blue', 'white']:
         print(f"skipping user {user['email']} for missing color", file=sys.stderr)
         return
 
