@@ -53,6 +53,7 @@ GOOGLE_DISCOVERY_URL = (
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+app.config['PERMANENT_SESSION_LIFETIME'] =  datetime.timedelta(minutes=5)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -110,6 +111,18 @@ def get_point_totals(db):
             raise ValueError("unknown color: " + pt.color)
 
     return (white_points, blue_points)
+
+def get_weekly_top_10_users(db):
+    """return the top 10 users by number of points"""
+    return query_db(db, """
+        select u.name, p.color, u.users_id, sum(p.num_points) points
+            from 
+                users u join
+                points p on (u.users_id = p.users_id)
+            group by u.users_id, p.color
+            order by sum(p.num_points) desc
+            limit 10
+        """, [])
 
 def get_top_10_users(db):
     """return the top 10 users by number of points"""
