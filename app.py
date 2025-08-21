@@ -52,6 +52,7 @@ GOOGLE_DISCOVERY_URL = (
 )
 
 app = Flask(__name__)
+
 app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] =  datetime.timedelta(minutes=5)
 
@@ -63,7 +64,8 @@ try:
 except sqlite3.OperationalError:
     pass
 
-client = WebApplicationClient(GOOGLE_CLIENT_ID)
+if not app.debug:
+    client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -147,11 +149,23 @@ def get_latest_points(db):
             limit 20
         """, [])
 
+def need_login():
+    if not current_user.is_authenticated:
+        return True
+
+    if 'users_id' in request.args:
+        return True
+
+    return False
+
 @app.route("/", methods = ['GET'])
 def index():
     """main page"""
-    if not current_user.is_authenticated:
-        return redirect(get_google_login_url())
+    if need_login():
+        if app.debug:
+            dev_login()
+        else:
+            return redirect(get_google_login_url())
 
     db = get_db()
 
@@ -190,8 +204,11 @@ def message():
 @app.route("/point", methods=['POST'])
 def point():
     """page to add a point"""
-    if not current_user.is_authenticated:
-        return redirect(get_google_login_url())
+    if need_login():
+        if app.debug:
+            dev_login()
+        else:
+            return redirect(get_google_login_url())
 
     require_vars(['event_date', 'event_type', 'event_description', 'num_points'])
 
@@ -226,8 +243,11 @@ def point():
 @app.route("/admin_points", methods=['GET', 'POST'])
 def admin_points():
     """display or process admin points page"""
-    if not current_user.is_authenticated:
-        return redirect(get_google_login_url())
+    if need_login():
+        if app.debug:
+            dev_login()
+        else:
+            return redirect(get_google_login_url())
 
     if not current_user.admin:
         return redirect(url_for("message", m="admin account required."))
@@ -270,8 +290,11 @@ def admin_points():
 @app.route("/download_points")
 def download_points():
     """generate and send a csv of the current points db"""
-    if not current_user.is_authenticated:
-        return redirect(get_google_login_url())
+    if need_login():
+        if app.debug:
+            dev_login()
+        else:
+            return redirect(get_google_login_url())
 
     if not current_user.admin:
         return redirect(url_for("message", m="admin account required."))
@@ -305,6 +328,16 @@ def download_points():
         output.headers["Content-type"] = "text/csv"
 
         return output
+
+def dev_login():
+    if 'users_id' not in request.args or request.args['users_id'] == '':
+        user = User.get_first_admin_user()
+    else:
+        user = User.get(request.args['users_id'])
+
+    print("login user " + user.name, file=sys.stderr)
+
+    login_user(user, remember=True)
 
 @app.route("/login")
 def login():
@@ -368,4 +401,4 @@ def logout():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

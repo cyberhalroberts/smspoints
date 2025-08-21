@@ -23,6 +23,15 @@ class User(UserMixin):
         return User(users_id=user[0], name=user[1], email=user[2], color=user[3], admin=user[4])
 
     @staticmethod
+    def get_first_admin_user():
+        db = get_db();
+        id = db.execute("select min(users_id) from users where admin").fetchone()
+        if not id:
+            return None
+
+        return User.get(id[0])
+
+    @staticmethod
     def get_by_email(email):
         db = get_db()
         user = db.execute(
