@@ -249,8 +249,8 @@ def admin_points():
         else:
             return redirect(get_google_login_url())
 
-    if not current_user.admin:
-        return redirect(url_for("message", m="admin account required."))
+    if not current_user.admin and current_user.teacher_points <= 0:
+        return redirect(url_for("message", m="admin or teacher points required."))
 
     today = datetime.datetime.now().strftime("%Y-%m-%d")
     if not request.form.get("submit", False):
@@ -271,11 +271,16 @@ def admin_points():
 
     require_vars(['num_points', 'color', 'event_date', 'event_type', 'event_description'])
 
-    num_points = request.form['num_points']
+    num_points = int(request.form['num_points'])
     color = request.form['color']
     event_date = request.form['event_date']
     event_type = request.form['event_type']
     event_description = request.form['event_description']
+
+    if num_points < user.teacher_points:
+        return redirect(url_for("message", m="not enough teacher points."))
+
+    User.update_points(current_id, current_user.teacher_points - num_points)
 
     db.execute("""
         insert into points

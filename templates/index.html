@@ -84,12 +84,19 @@
                 </table>
                 <div class="footer">
                     <p>&nbsp;</p>
-                    {%- if current_user.admin %}
+		    {%- if current_user.admin %}
                         <p>
                             <a href="/admin_points">administer points</a> |
                             <a href="/download_points">download points</a>
                         </p>
+                    {% else %}
+			    {%- if current_user.teacher_points > 0 %}
+				<p>
+				    <a href="/admin_points">administer points</a> 
+				</p>
+			    {% endif %}
                     {% endif %}
+
                 </div>
             </div>
         </div>
