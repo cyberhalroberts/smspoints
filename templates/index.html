@@ -87,7 +87,8 @@
 		    {%- if current_user.admin %}
                         <p>
                             <a href="/admin_points">administer points</a> |
-                            <a href="/download_points">download points</a>
+                            <a href="/download_points">download all points</a> |
+                            <a href="/download_points">download weekly points</a>
                         </p>
                     {% else %}
 			    {%- if current_user.teacher_points > 0 %}

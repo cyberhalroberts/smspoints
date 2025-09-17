@@ -292,6 +292,46 @@ def admin_points():
 
     return redirect(url_for("index", message="Points added!"))
 
+@app.route("/download_weekly_points")
+def download_weekly_points():
+    """generate and send a csv of the current weekly leaders list"""
+    if need_login():
+        if app.debug:
+            dev_login()
+        else:
+            return redirect(get_google_login_url())
+
+    if not current_user.admin:
+        return redirect(url_for("message", m="admin account required."))
+
+    db = get_db()
+
+    points = db.execute("""
+        select datetime(p.event_date, 'weekday 3') wednesday, p.color,
+                count(*) point_count, u.name, u.email
+            from 
+                points p join
+                users u on (u.users_id = p.users_id )
+            group by p.users_id, wednesday, p.color, u.name, u.email
+            order by wednesday desc, p.color, point_count desc
+        """)
+
+    fieldnames = ("week color, count, name, email").split();
+
+    with io.StringIO() as csvfile:
+
+        writer = csv.writer(csvfile)
+
+        writer.writerow(fieldnames)
+        for point in points:
+            writer.writerow(point)
+
+        output = make_response(csvfile.getvalue())
+        output.headers["Content-Disposition"] = "attachment; filename=weekly_points.csv"
+        output.headers["Content-type"] = "text/csv"
+
+        return output
+
 @app.route("/download_points")
 def download_points():
     """generate and send a csv of the current points db"""
