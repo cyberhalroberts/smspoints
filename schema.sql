@@ -24,6 +24,14 @@ create table points (
     foreign key (added_by) references users(id)
 );
 
+create table bonus_points (
+    bonus_points_id int primary key,
+    total_points int not null default 1,
+    start_date text not null,
+    end_date text not null,
+    event_type text not null
+);
+
 create index if not exists points_user on points(users_id);
 create index if not exists points_created on points(created_time);
 create index if not exists points_event_day on points(event_date);

@@ -10,30 +10,23 @@
                 {%- if message %}
                     <p>{{message}}</p>
                 {% endif %}
-		<p>{{ current_user.teacher_points }} teacher points available</p>
-                <form action="/admin_points" method="POST">
+                <form action="/bonus_points" method="POST">
                     <table class="points-box">
                         <tr>
                             <td class="points-form">
-                                <input type="text" name="email" placeholder="email of point getter (optional)" />
+                                <input type="text" name="total_points" placeholder="total points for each entry" />
                             </td>
                         </tr>
                         <tr>
                             <td class="points-form">
-                                <input type="text" name="num_points" value=1 size=4 style="text-align:center;" required/>
-                            </td>
-                        </tr>
-                        <tr >
-                            <td class="points-form">
-                                <select name="color">
-                                    <option value="blue">blue</option>
-                                    <option value="white">white</option>
-                                </select>
+                            	<input class="points-input" type="date" name="start_date" value="{{ today }}" required/>
                             </td>
                         </tr>
                         <tr>
+                            <td class="points-form">
+                            	<input class="points-input" type="date" name="end_date" value="{{ today }}" required/>
+                            </td>
                         </tr>
-                            <td class="points-form"><input class="points-input" type="date" name="event_date" value="{{ today }}" required/></td>
                         <tr>
                             <td class="points-form">
                                 <select name="event_type" class="points-input">
@@ -43,12 +36,21 @@
                                 </select>
                             </td>
                         </tr>
-                        <tr>
-                            <td class="points-form"><input name="event_description" placeholder="vs. hutchison" class="points-input" required/></td>
-                        </tr>
                     </table>
-                    <input class="points-button" name="submit" type="submit" size="16" value="point!" class="points-input"></td>
+                    <input class="points-button" name="submit" type="submit" size="16" value="add" class="points-input"></td>
                 </form>
+
+                <h2>Bonus Points</h2>
+                <table class="top10-box" border="1">
+                    {%- for point in bonus_points %}
+                        <tr class="{{ loop.cycle('top10-row-gray', 'top10-row-white') }}">
+                            <td>{{ point.total_points }}</td>
+                            <td>{{ point.start_date}}</td>
+                            <td>{{ point.end_date }}</td>
+                            <td>{{ point.event_type }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
 
                 <p>&nbsp;</p>
             </div>

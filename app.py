@@ -4,6 +4,7 @@ import datetime
 import io
 import json
 import os
+import re
 import sqlite3
 import sys
 
@@ -141,13 +142,38 @@ def get_top_10_users(db):
 def get_latest_points(db):
     """return a list of the latest points by event_date and then created_time"""
     return query_db(db, """
-        select u.name, p.color, p.event_date, p.event_type
+        select u.name, p.color, p.event_date, p.event_type, p.num_points
             from
                 users u join
                 points p on (u.users_id = p.users_id)
             order by p.event_date desc, p.created_time desc
             limit 20
         """, [])
+
+def get_bonus_points(db):
+    """return a list of the bonus points"""
+    return query_db(db, """
+        select start_date, end_date, total_points, event_type
+            from bonus_points
+            order by start_date desc, end_date desc, total_points desc
+    """, [])
+
+def get_num_bonus_points(db, event_date, event_type, num_points):
+    """return total_points from matching bonus_points row, or num_ponts"""
+    bonus_points = query_db(db, """
+        select *
+            from bonus_points
+            where
+                event_type = ? and
+                start_date <= ? and
+                end_date >= ?
+        """, [event_type, event_date, event_date])
+
+    if bonus_points:
+        return bonus_points[0]['total_points']
+    else:
+        return num_points
+
 
 def need_login():
     if not current_user.is_authenticated:
@@ -215,9 +241,10 @@ def point():
     event_date = request.form['event_date']
     event_type = request.form['event_type']
     event_description = request.form['event_description']
-    num_points = request.form['num_points']
 
     db = get_db()
+
+    num_points = get_num_bonus_points(db, event_date, event_type, request.form['num_points'])
 
     if not current_user.color:
         if not 'color' in request.form:
@@ -291,6 +318,48 @@ def admin_points():
     db.commit()
 
     return redirect(url_for("index", message="Points added!"))
+
+@app.route("/bonus_points", methods=['GET', 'POST'])
+def bonus_points():
+    """display or process bonus points page"""
+    if need_login():
+        if app.debug:
+            dev_login()
+        else:
+            return redirect(get_google_login_url())
+
+    if not current_user.admin and current_user.teacher_points <= 0:
+        return redirect(url_for("message", m="admin or teacher points required."))
+
+    db = get_db()
+
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+
+    bonus_points = get_bonus_points(db) 
+
+    if not request.form.get("submit", False):
+        return render_template("bonus_points.html", 
+                    today=today,
+                    event_types=EVENT_TYPES,
+                    bonus_points=bonus_points)
+
+    require_vars(['total_points', 'start_date', 'end_date'])
+
+    total_points = int(request.form['total_points'])
+    start_date = request.form['start_date']
+    end_date = request.form['end_date']
+    event_type = request.form['event_type']
+
+
+    db.execute("""
+        insert into bonus_points
+            (total_points, start_date, end_date, event_type)
+            values (?, ?, ?, ?);
+        """,
+        [total_points, start_date, end_date, event_type])
+    db.commit()
+
+    return redirect(url_for("bonus_points", message="Bonus points added!"))
 
 @app.route("/download_weekly_points")
 def download_weekly_points():

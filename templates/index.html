@@ -79,6 +79,7 @@
                             <td>{{ point.color }}</td>
                             <td>{{ point.event_date }}</td>
                             <td>{{ point.event_type }}</td>
+                            <td>{{ point.num_points }}</td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -87,6 +88,7 @@
 		    {%- if current_user.admin %}
                         <p>
                             <a href="/admin_points">administer points</a> |
+                            <a href="/bonus_points">bonus points</a> |
                             <a href="/download_points">download all points</a> |
                             <a href="/download_points">download weekly points</a>
                         </p>
